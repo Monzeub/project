@@ -1,0 +1,42 @@
+import sqlite3
+import uvicorn
+import requests
+from fastapi import FastAPI, Request
+
+app = FastAPI()
+
+
+@app.post("/register_pey")
+async def register_pey(payload: Request):
+    
+    values_dict = await payload.json()
+  
+    
+    datel = requests.get('http://api.exchangeratesapi.io/v1/latest?access_key=deaa05e1bb6d6cce5849a5933ec83061').json()
+    dateotd = datel["date"]
+    dbase = sqlite3.connect('API_database .db', isolation_level=None)
+    
+    
+    
+    queryregisterclient = dbase.execute('''
+    INSERT INTO Clients(Name, Email, Phone , Adress) 
+    VALUES ({named}, {email}, {phone}, {adress})             
+    ''' .format(named=values_dict['Name'], email = str(values_dict[ 'Email' ]), phone = str(values_dict[ 'Phone number' ]),adress = str(values_dict[ 'Adress' ])))
+    
+    query_company = dbase.execute('''
+                    INSERT INTO Companies(Name,Adress, Bank) 
+                    VALUES ({Name}, {adress}, {Bank})             
+                    '''.format(Name=str(values_dict['Name']), adress=str(values_dict['Adress']), Bank= str(values_dict["Bank"])))
+
+
+    company = {'Spotify': {'family': 67, 'child': 35},'Amazon': {'Fastdelivery': 45}}
+    queryquote = dbase.execute('''
+                  INSERT INTO Quote(Date, Currency, Price_VAT_Exclude, VAT, Accepted, Client_id,Companies_id)
+                  VALUES ({date}, {currency}, {pricevatexcl}, {vat}, {accepted}, {client}, {companies})
+                  '''.format(date =dateotd, currency= "EUR", pricevatexcl= company[str(values_dict['Namecompany'])][str(values_dict['Product'])], vat=str(values_dict['VAT']), accepted=str(values_dict['Accepted']), client=str(values_dict['Client_id']), companies=str(values_dict['VAT_id'])))                
+
+    
+    return   queryregisterclient, query_company, queryquote
+
+if __name__ == '__main__':
+    uvicorn.run(app, host='127.0.0.1', port=8000)
