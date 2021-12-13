@@ -1,0 +1,33 @@
+cc_number = input (“Please enter your credit card number”) 
+Print (“Your credit card number:”, cc_number) 
+N = 0 
+Liste = [] 
+While cc_number != 0 : 
+     A = cc_number % 10 
+     Liste.insert (N, A)  
+#N : position Rem : si numéro de carte dans le bon sens --> N = -1 et N = N-1 
+# cartes commencent par 0 ?  
+      N = N + 1 
+      cc_number = (cc_number – A) / 10 
+checking_digit = Liste [0]  
+#dernier chiffre de la carte (premier de la liste) 
+del Liste [0] 
+Last_check = 0 
+For i in Liste : 
+#i c’est la valeur 
+# liste.index(i) --> c’est la position dans la liste  
+      If Liste.index(i) % 2 == 0 : 
+            double = i * 2 
+            If double >= 9 : 
+                  add = double – 9 
+            Else: 
+                  add = double 
+            Last_check = Last_check + add 
+      Else:  
+            Last_check = Last_check 
+Validity = Last_check + checking_digit 
+if Validity % 10 == 0: 
+      Print (“The credit card is valid!”) 
+else: 
+      Print (“The credit card is not valid!”)
+      
