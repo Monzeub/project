@@ -4,3 +4,27 @@ Content-Type: application/json
 { 
     "Client_id": "5"
 }
+
+###
+
+POST http://127.0.0.1:8001/register_client HTTP/1.1
+Content-Type: application/json
+
+{
+    "Name" : "Eliott",
+    "Email" : "maxvdmgmailcom",
+    "Phone_number" : "478071037",
+    "Adress" : "NY"
+}
+###
+
+POST http://127.0.0.1:8001/register_company HTTP/1.1
+Content-Type: application/json
+
+{
+    "Name" : "Spotify",
+    "Adress" : "NY",
+    "Bank" : "3631 5655 3423 2121",
+    "VAT" : "123"
+}
+###
