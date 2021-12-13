@@ -1,0 +1,113 @@
+import sqlite3 
+Dbase = sqlite3.connect('API_database .db', isolation_level = None) 
+
+
+Dbase.execute (''' CREATE TABLE IF NOT EXISTS Companies ( 
+    Companies_id INT PRIMARY KEY NOT NULL, 
+    Name TEXT NOT NULL,
+    VAT_id INT NOT NULL,  
+    Adress TEXT NOT NULL, 
+    Bank account number INT NOT NULL) ''') 
+
+Dbase.execute (''' 
+    CREATE TABLE IF NOT EXISTS Credit_card ( 
+    Credit_card_id INT PRIMARY KEY NOT NULL,
+    Client_id INT NOT NULL,  
+    Currency TEXT NOT NULL,
+    FOREIGN KEY (Client_id) REFERENCES Clients(Client_id)
+    ) ''') 
+
+Dbase.execute (''' CREATE TABLE IF NOT EXISTS Clients ( 
+    Client_id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE, 
+    Name TEXT NOT NULL, 
+    Email Adress TEXT NOT NULL, 
+    Phone number INT NOT NULL,  
+    Adress TEXT NOT NULL
+    )''') 
+
+Dbase.execute (''' CREATE TABLE IF NOT EXISTS Quote (
+    Quote_id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE, 
+    Date DATE NOT NULL, 
+    Currency TEXT NOT NULL, 
+    Price_VAT_exclude FLOAT NOT NULL, 
+    VAT FLOAT NOT NULL, 
+    Accepted BIT, 
+    Client_id INT NOT NULL,
+    Companies_id INT NOT NULL, 
+    FOREIGN KEY (Companies_id) REFERENCES Companies(Companies_id),
+    FOREIGN KEY (Client_id) REFERENCES Clients(Client_id)
+    )''') 
+
+Dbase.execute (''' CREATE TABLE IF NOT EXISTS Product (
+    Product_id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE, 
+    Name TEXT NOT NULL, 
+    Price_exclude_VAT INT NOT NULL, 
+    Price_with_VAT INT NOT NULL, 
+    Currency TEXT NOT NULL, 
+    Companies_id INT NOT NULL, 
+    FOREIGN KEY (Companies_id) REFERENCES Companies(Companies_id)
+
+    )''')
+
+
+Dbase.execute (''' CREATE TABLE IF NOT EXISTS Subscription ( 
+    Subscription_id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE, 
+    Client_id INT NOT NULL, 
+    Product_id INT NOT NULL,  
+    Active BIT, 
+    FOREIGN KEY (Client_id) REFERENCES Clients(Client_id), 
+    FOREIGN KEY (Product_id) REFERENCES Product(Product_id) 
+    ) ''') 
+
+
+Dbase.execute('''CREATE TABLE IF NOT EXISTS Invoice (
+    Invoice_id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE, 
+    Paid BIT, 
+    Currency TEXT NOT NULL, 
+    Price_with_VAT INT NOT NULL, 
+    Subscription_id INT NOT NULL, 
+    Client_id INT NOT NULL,
+    Companies_id INT NOT NULL, 
+    FOREIGN KEY (Subscription_id) REFERENCES Subscription(Subscription_id),
+    FOREIGN KEY (Client_id) REFERENCES Clients(Client_id),
+    FOREIGN KEY (Companies_id) REFERENCES Companies(Companies_id)
+    )
+    ''')
+
+Dbase.execute(''' CREATE TABLE IF NOT EXISTS Quote_lines (
+    Quote_Lines_id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE, 
+    Quantity INT NOT NULL, 
+    Quote_id INT NOT NULL,
+    Product_id INT NOT NULL,
+    FOREIGN KEY (Quote_id) REFERENCES Quote(Quote_id),
+    FOREIGN KEY (Product_id) REFERENCES Product(Product_id)
+    )''')
+
+
+
+def insert_client(clientid, name, email, phone, creditcard):
+    Dbase.execute('''
+        INSERT INTO Clients(Client_id, Name, Email, Phone, Credit_card_id)
+        VALUES(?,?,?,?,?)''', (clientid, name, email, phone, creditcard))
+    print("client inserted")
+
+
+def insert_quote(quoteid, date,currency,  price_VAT_exclude, vat, product, accepted, clientid):
+    Dbase.execute('''
+        INSERT INTO Quote(Quote_id,Date,Currency, Price_VAT_exclude, VAT, Product,Accepted, Client_id)
+        VALUES(?,?,?,?,?,?,?,?)''', (quoteid,  date,currency, price_VAT_exclude, vat, product, accepted, clientid))
+    print("Quote inserted")
+
+def insert_companies(VAT_id, Name, Adress, Bank): 
+    Dbase.execute('''
+        INSERT INTO Companies(VAT_id, Name, Adress,Bank)
+        VALUES(?,?,?,?)''', (VAT_id, Name, Adress, Bank))
+
+
+def insert_subscription (Subscription_id, VAT_id, Client_id, Quote_id, Active, Payment):
+    Dbase.execute('''
+        INSERT INTO Subscription (Subscription_id, VAT_id, Client_id,Quote_id, Active, Payment)
+        VALUES(?,?,?,?,?,?)''', (Subscription_id, VAT_id, Client_id, Quote_id, Active, Payment))
+    print("Subscription inserted")
+
+Dbase.close()
