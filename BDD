@@ -3,7 +3,7 @@ Dbase = sqlite3.connect('API_database .db', isolation_level = None)
 
 
 Dbase.execute (''' CREATE TABLE IF NOT EXISTS Companies ( 
-    Companies_id INT PRIMARY KEY NOT NULL, 
+    Companies_id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
     Name TEXT NOT NULL,
     VAT_id INT NOT NULL,  
     Adress TEXT NOT NULL, 
@@ -11,7 +11,7 @@ Dbase.execute (''' CREATE TABLE IF NOT EXISTS Companies (
 
 Dbase.execute (''' 
     CREATE TABLE IF NOT EXISTS Credit_card ( 
-    Credit_card_id INT PRIMARY KEY NOT NULL,
+    Credit_card_id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
     Client_id INT NOT NULL,  
     Currency TEXT NOT NULL,
     FOREIGN KEY (Client_id) REFERENCES Clients(Client_id)
