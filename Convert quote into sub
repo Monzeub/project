@@ -28,8 +28,7 @@ async def Active_subscription(payload: Request):
                         UPDATE Subscription
                         SET Active = 1
                         WHERE Client_id = {Client_id}
-                        AND Quote_id = {Quote_id}
-                        AND VAT_id = {VAT_id}
-                        '''.format(Client_id = values_dict['Client_id'], Quote_id = values_dict['Quote_id'], VAT_id = values_dict['VAT_id'])) 
+                        AND Product_id = {Product_id}
+                        '''.format(Client_id = values_dict['Client_id'], Product_id = values_dict['Product_id'])) 
 
     return "Subscription Active"
