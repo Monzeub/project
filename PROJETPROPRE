@@ -22,6 +22,19 @@ async def register_pey(payload: Request):
     dbase.close()
     return "Client created"
 
+@app.post("/credit_card")
+async def register_pey(payload: Request):
+    
+    values_dict = await payload.json()
+
+    dbase = sqlite3.connect('API_database2.db', isolation_level=None)
+
+
+    querycard = dbase.execute('''
+    INSERT INTO Credit_card(Credit_card_id, Client_id, Currency)
+    VALUES ("{creditcard}", "{clientid}", "{currency}")
+    '''.format(creditcard = values_dict['Creditcard'], clientid = values_dict['Clientid'], currency = str(values_dict['Currency'])))
+    return "Credit card inserted"
 
 @app.post("/register_company")
 async def register_pey(payload: Request):
