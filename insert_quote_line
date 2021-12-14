@@ -1,0 +1,33 @@
+@app.post("/insert_quote_line")
+async def insert_quote_line(payload: Request):
+    
+    values_dict = await payload.json()
+    dbase = sqlite3.connect('API_database.db', isolation_level=None)
+
+    Price_exclude_VAT = dbase.execute ('''
+                    SELECT Product_id, Price_exclude_VAT FROM Product
+                    WHERE Product_id = {}
+                    '''.format(str(values_dict['Product_id'])))
+
+    Price_exclude_VAT_results = Price_exclude_VAT.fetchall()[0][1]
+    
+
+    Quantity_quote_lines = dbase.execute('''
+                    SELECT Quote_Lines_id, Quantity FROM Quote_lines
+                    WHERE Quote_Lines_id = {}
+                    '''.format(values_dict['Quote_Lines_id']))
+    
+    Quantity_quote_lines_results = Quantity_quote_lines.fetchall()[0][1]
+    New_Price_exclude_VAT = Price_exclude_VAT_results * Quantity_quote_lines_results
+    
+
+
+    Updated_Price_exclude_VAT = dbase.execute('''
+                            UPDATE Quote_lines 
+                            SET Line_price = {New_Price_exclude_VAT1}
+                            WHERE Quote_Lines_id = {Quote_Lines_id}
+                            '''.format(New_Price_exclude_VAT1 = New_Price_exclude_VAT, Quote_Lines_id=(values_dict['Quote_Lines_id'])))
+
+    
+
+    return Updated_Price_exclude_VAT
