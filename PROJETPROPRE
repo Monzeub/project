@@ -1,0 +1,104 @@
+import sqlite3
+import uvicorn
+import requests
+from fastapi import FastAPI, Request
+
+app = FastAPI()
+
+
+@app.post("/register_client")
+async def register_pey(payload: Request):
+    
+    values_dict = await payload.json()
+    dbase = sqlite3.connect('API_database .db', isolation_level=None)
+
+    queryregisterclient = dbase.execute('''
+                    INSERT INTO Clients
+                    (Name, Email, Phone , Adress) 
+                    VALUES ("{named}", "{email}", "{phone}", "{adress}")             
+                    ''' .format(named = values_dict['Name'], email = str(values_dict[ 'Email' ]), phone = str(values_dict[ 'Phone_number' ]),adress = str(values_dict[ 'Adress' ])))
+    
+    
+    dbase.close()
+    return "Client created"
+
+
+@app.post("/register_company")
+async def register_pey(payload: Request):
+    
+    values_dict = await payload.json()
+
+    dbase = sqlite3.connect('API_database .db', isolation_level=None)
+
+    query_company = dbase.execute('''
+                    INSERT INTO Companies(Name, VAT, Adress, Bank) 
+                    VALUES ("{Name}", "{VAT}","{Adress}", "{Bank}")             
+                    '''.format(Name=str(values_dict['Name']), VAT = str(values_dict['VAT']),Adress=str(values_dict['Adress']), Bank= str(values_dict["Bank"])))
+    return "Company inserted"
+    
+@app.post("/insert_product")
+async def register_pey(payload: Request):
+    
+    values_dict = await payload.json()
+
+    dbase = sqlite3.connect('API_database .db', isolation_level=None)
+
+    query_product= dbase.execute('''
+                    INSERT INTO Product(Name,Price_exclude_VAT,Price_with_VAT, Currency, Companies_id) 
+                    VALUES ("{Name}", "{Price_exclude_VAT}","{Price_with_VAT}", "{Currency}", "{Companies_id}")             
+                    '''.format(Name=str(values_dict['Name']), Price_exclude_VAT = (values_dict['Price_exclude_VAT']), Price_with_VAT = 0 , Currency=str(values_dict['Currency']), Companies_id= str(values_dict['Companies_id'])))
+
+
+    Final_price = dbase.execute('''
+                    UPDATE Product 
+                    SET Price_with_VAT = Price_exclude_VAT * 1.21 
+                    ''')
+
+    
+    return "Product inserted"
+@app.post("/insert_quote") #company fait cette action
+async def insert_quote(payload: Request):
+    
+    values_dict = await payload.json()
+
+    dbase = sqlite3.connect('API_database .db', isolation_level=None)
+
+    datel = requests.get('http://api.exchangeratesapi.io/v1/latest?access_key=deaa05e1bb6d6cce5849a5933ec83061').json()
+    dateotd = datel["date"]
+
+    query_client = dbase.execute ('''
+                    SELECT Client_id FROM Clients
+                    WHERE Client_id = {}
+                    ''' .format(str(values_dict['Client_id'])))
+
+    client_results = query_client.fetchall()[0][0]
+
+    insert_quote = dbase.execute ('''
+                    INSERT INTO Quote (Date,Currency, Price_exclude_VAT, Price_with_VAT,Accepted,Client_id)
+                    VALUES ("{Date}", "{Currency}","{Price_exclude_VAT}", "{Price_with_VAT}", "{Accepted}", "{Client}")
+                    ''' .format(Date=dateotd, Currency="EUR", Price_exclude_VAT = 0, Price_with_VAT = 0, Accepted = False, Client = str(values_dict['Client_id'])))
+@app.post("/insert_quote_line")
+async def register_pey(payload: Request):
+    
+    values_dict = await payload.json()
+    dbase = sqlite3.connect('API_database .db', isolation_level=None)
+
+    company = {'Spotify': {'family': 67, 'child': 35},'Amazon': {'Fastdelivery': 45}}
+
+    query_product = dbase.execute ('''
+                    SELECT Product_id FROM Product
+                    WHERE Product_id = {}
+                    ''' .format(str(values_dict['Product_id'])))
+    product_results = query_product.fetchall()[0][0]
+
+    query_quote = dbase.execute('''
+                    SELECT Quote_id FROM Quote 
+                    WHERE Quote_id = {}
+                    ''' .format(str(values_dict['Quote_id'])))
+    quote_results = query_quote.fetchall()[0][0]
+
+    query_quote_line = dbase.execute('''
+                  INSERT INTO Quote_lines(Quantity,Quote_id, Product_id)
+                  VALUES ("{Quantity}", "{Quote_id}", "{Product_id}")
+                  '''.format(Quantity = values_dict['Quantity'],Quote_id = str(values_dict['Quote_id']), Product_id = str(values_dict['Product_id'])))
+    return "Quote_line inserted"
