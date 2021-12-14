@@ -1,0 +1,11 @@
+dbase = sqlite3.connect('API_database.db', isolation_level=None)
+
+def read_data():
+    query = '''
+     SELECT * 
+      FROM Quote_lines JOIN Quote
+         ON (Quote_lines.Quote_id = Quote.Quote_id) '''
+    results = pd.read_sql_query(query, dbase)
+    print(results)
+
+read_data()
