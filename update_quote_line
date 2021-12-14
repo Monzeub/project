@@ -1,4 +1,4 @@
-@app.post("/insert_quote_line")
+@app.post("/update_quote_line")
 async def insert_quote_line(payload: Request):
     
     values_dict = await payload.json()
