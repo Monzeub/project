@@ -1,0 +1,73 @@
+import sqlite3
+import uvicorn
+import requests
+from fastapi import FastAPI, Request
+import pandas as pd
+from datetime import datetime
+app = FastAPI()
+exchangerate = requests.get('http://api.exchangeratesapi.io/v1/latest?access_key=deaa05e1bb6d6cce5849a5933ec83061').json()
+
+rate = exchangerate["rates"]
+
+dbase = sqlite3.connect('API_database .db', isolation_level=None)
+date = datetime.today().strftime('%m-%d')
+Findemois = ["01-31", "02-28","03-31","04-30", "05-31", "06-30", "07-31","08-31","09-30","10-31","11-30","12-31"]
+
+if date in Findemois: 
+
+    
+    all_quote = dbase.execute('''SELECT Quote_id FROM Quote
+            WHERE Accepted = 1
+            ''')
+
+    liste_tuple = all_quote.fetchall()
+    allquote= [x for elem in liste_tuple for x in elem]
+
+
+    for i in allquote :
+
+        selectclient = dbase.execute('''
+                    SELECT Client_id FROM Quote
+                    WHERE Quote_id = {Quote_id}
+                    '''.format(Quote_id = i ))
+        
+        selectclientresults = selectclient.fetchall()[0][0]
+
+        query_currency = dbase.execute('''
+                    SELECT Currency FROM Credit_card
+                    WHERE Client_id = {Client_id}
+                    '''.format(Client_id = selectclientresults))
+
+        Currency_results = query_currency.fetchall()[0][0]
+
+        query_Price_with_VAT = dbase.execute ('''
+                    SELECT Price_with_VAT FROM Quote
+                    WHERE Quote_id = {Quote_id}
+                    '''.format(Quote_id = i))
+
+        Price_results = query_Price_with_VAT.fetchall()[0][0]
+    
+        exchangerate = requests.get('http://api.exchangeratesapi.io/v1/latest?access_key=deaa05e1bb6d6cce5849a5933ec83061').json()
+
+        rate = exchangerate["rates"]
+
+        querylient = dbase.execute('''
+                        SELECT Client_id FROM Quote
+                        WHERE Quote_id = {Quote_id}
+                        '''.format(Quote_id = i))
+    
+        Queryclient = querylient.fetchall()[0][0]
+     
+        Price_customer = Price_results * rate[Currency_results]
+
+
+    
+
+        dbase.execute('''INSERT INTO Invoice 
+        (Paid, Price_with_VAT, Currency, Price_customer, Currency_customer, Quote_id, Client_id)
+        VALUES ("{Paid}", "{Price_with_VAT}", "{Currency}", "{Price_customer}", "{Currency_customer}", "{Quote_id}", "{Client_id}")
+        '''.format(Paid = 0, Price_with_VAT = Price_results, Currency = "EUR", Price_customer = Price_customer, Currency_customer = Currency_results, Quote_id = i, Client_id = selectclientresults))
+
+        print("Invoice_created")
+        
+else: print("Pas de nouvelles factures")
