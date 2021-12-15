@@ -7,16 +7,6 @@ values_dict = await payload.json()
 
 dbase = sqlite3.connect('API_database.db', isolation_level=None)
 
-referencenumber = ('''
-SELECT * FROM Invoice
-WHERE Client_id = {clientid}
-AND Paid = {paid}
-'''.format(clientid =str(values_dict['clientid']),paid = 0))
-print(referencenumber)
-
-
-
-
 querycard = dbase.execute('''
 SELECT credit_cardid FROM Creditcard
 WHERE Clientid = {clientid}
@@ -53,25 +43,18 @@ for i in Liste :
 Validity = Last_check + checking_digit 
 if Validity % 10 == 0: 
       Print (“The credit card is valid!”) 
-    validitycard = dbase.execute(''' 
+      
+validitycard = dbase.execute(''' 
 UPDATE Invoice
 SET Paid = 1
-WHERE credit_cardid = {creditcardid}
-AND Invoice.id = {Referencenumber}
+WHERE credit_card_id = {creditcardid}
+AND Invoice_id = {Referencenumber}
 '''.format(creditcardid = str(query_card), Referencenumber = str(values_dict['referencenumber'])))
 
 else: 
       Print (“The credit card is not valid!”)
 
 
-
-
-validitycard = dbase.execute(''' 
-UPDATE Invoice
-SET Paid = 1
-WHERE credit_cardid = {creditcardid}
-AND Invoice.id = {Referencenumber}
-'''.format(creditcardid = str(query_card), Referencenumber = str(values_dict['referencenumber'])))
 
 if _name_ == '_main_':
   uvicorn.run(app, host='127.0.0.1', port=8000)
