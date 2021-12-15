@@ -82,7 +82,39 @@ async def register_pey(payload: Request):
                   '''.format(Quantity = values_dict['Quantity'],Quote_id = str(values_dict['Quote_id']), Product_id = str(values_dict['Product_id'])))
     return "Quote_line inserted"
 
-    
+@app.post("/update_quote") # +creation invoice 
+async def update_quote(payload: Request):
+
+    values_dict = await payload.json()
+    dbase = sqlite3.connect('API_database .db', isolation_level=None)
+
+    query_active_subscription = dbase.execute(''' 
+                    UPDATE Quote
+                    SET Accepted = 1
+                    WHERE Quote_id = "{Quote_id}"
+                    '''.format(Quote_id = values_dict['Quote_id']))
+
+    query_currency = dbase.execute('''
+                    SELECT Currency FROM Credit_card
+                    WHERE Client_id = {Client_id}
+                    '''.format(Client_id = values_dict['Client_id']))
+
+    Currency_results = query_currency.fetchall()[0][0]
+
+
+    query_Price_with_VAT = dbase.execute ('''
+                    SELECT Price FROM Quote
+                    WHERE Quote_id = {Quote_id}
+                    '''. format(Quote_id = values_dict['Quote_id']))
+    Price_results = query_Price_with_VAT.fetchall()[0][0]
+
+    query_invoice = dbase.execute(''' 
+                    INSERT INTO Invoice (Paid, Currency, Price_with_VAT, Quote_id, Client_id, Companies_id) 
+                    VALUES ("{Paid}", "{Currency}", "{Price}","{Quote_id}", "{Client_id}", "{Companies_id}")             
+                    '''. format(Paid = 0 , Currency = Currency_results, Price = Price_results, Quote_id = values_dict['Quote_id'], Client_id = values_dict['Client_id'], Companies_id = values_dict['Companies_id']))
+
+    dbase.close()
+    return "Quote Activated"
     
     
 if __name__ == '__main__':
