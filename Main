@@ -31,11 +31,10 @@ async def register_pey(payload: Request):
     dbase = sqlite3.connect('API_database .db', isolation_level=None)
 
     query_company = dbase.execute('''
-                    INSERT INTO Companies(Name, VAT, Adress, Bank) 
-                    VALUES ("{Name}", "{VAT}","{Adress}", "{Bank}")             
-                    '''.format(Name=str(values_dict['Name']), VAT = str(values_dict['VAT']),Adress=str(values_dict['Adress']), Bank= str(values_dict["Bank"])))
+                    INSERT INTO Companies(Companies_id, Name, Adress, Bank) 
+                    VALUES ("{Companies_id}","{Name}","{Adress}", "{Bank}")             
+                    '''.format(Companies_id = str(values_dict['Companies_id']), Name=str(values_dict['Name']),Adress=str(values_dict['Adress']), Bank= str(values_dict["Bank"])))
     return "Company inserted"
-    
 @app.post("/insert_product")
 async def register_pey(payload: Request):
     
