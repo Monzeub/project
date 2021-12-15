@@ -1,0 +1,52 @@
+exchangerate = requests.get('http://api.exchangeratesapi.io/v1/latest?access_key=deaa05e1bb6d6cce5849a5933ec83061').json()
+
+rate = exchangerate["rates"]
+@app.post("/convert_currency")
+
+
+async def convert_currency(payload: Request):
+ 
+    values_dict = await payload.json()
+
+    dbase = sqlite3.connect('API_database .db', isolation_level=None)
+    querylient = dbase.execute('''
+                SELECT Client_id FROM Quote
+                WHERE Quote_id = {Quote_id}
+                '''.format(Quote_id = values_dict['Quote_id']))
+    
+    Queryclient = querylient.fetchall()[0][0]
+    
+    query_cur = dbase.execute(''' 
+               SELECT Currency FROM Credit_card 
+               WHERE Client_id = {clientid} 
+               '''.format(clientid = Queryclient))
+    
+    querycur = query_cur.fetchall()[0][0]
+
+
+    query_prix = dbase.execute(''' 
+                SELECT Price_with_VAT FROM Quote
+                WHERE Quote_id = {} 
+                '''.format(str(values_dict['Quote_id'])))
+    
+    queryprix = query_prix.fetchall()[0][0]
+
+     
+
+     
+    queryprix = queryprix * rate[querycur]
+        
+
+    queryvat = dbase.execute(''' 
+    UPDATE Invoice 
+    SET Price_customer = {pricevat}
+    WHERE Quote_id = {Quote_id} 
+    '''.format(Quote_id = values_dict['Quote_id'], pricevat = str(queryprix)))
+    print(query_cur)
+    querynewcur = dbase.execute('''
+    UPDATE Invoice
+    SET Currency_customer = ('{currency}')
+    WHERE Quote_id = {Quote_id} 
+    '''.format(Quote_id = values_dict['Quote_id'], currency = str(querycur)))
+                        
+    return "Currency exchanged"
