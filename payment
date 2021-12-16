@@ -1,58 +1,82 @@
-@app.post("/payment")
-async def register_pey(payload: Request):
+@app.post("/pay_invoice")
+async def pay_invoice(payload: Request):
     
-values_dict = await payload.json()
+    values_dict = await payload.json()
+    
+    dbase = sqlite3.connect('API_database.db', isolation_level=None)
 
- 
+    reference_number = dbase.execute('''SELECT Invoice_id FROM Invoice
+                        WHERE Client_id = {clientid}
+                        AND Paid = {paid}
+                        '''.format(clientid =str(values_dict['clientid']),paid = 0))
+    
+   
+    referencenumber = reference_number.fetchall()
 
-dbase = sqlite3.connect('API_database.db', isolation_level=None)
+    querycard = dbase.execute('''SELECT credit_card_id FROM Credit_card
+                            WHERE Client_id = {clientid}
+                            '''.format(clientid=str(values_dict['clientid'])))
 
-querycard = dbase.execute('''
-SELECT credit_cardid FROM Creditcard
-WHERE Clientid = {clientid}
-'''.format(clientid=str(values_dict['client_id'])))
+    query_card = querycard.fetchall()[0][0]
 
-query_card = querycard.fetchall()[0][0]
+    N = 0 
+    Liste = [] 
 
+    while query_card != 0 : 
 
-N = 0 
-Liste = [] 
-While query_card != 0 : 
      A = query_card % 10 
      Liste.insert (N, A)  
-#N : position Rem : si numéro de carte dans le bon sens --> N = -1 et N = N-1 
-# cartes commencent par 0 ?  
-      N = N + 1 
-      query_card = (query_card – A) / 10 
-checking_digit = Liste [0]  
-#dernier chiffre de la carte (premier de la liste) 
-del Liste [0] 
-Last_check = 0 
-for i in Liste : 
-#i c’est la valeur 
-# liste.index(i) --> c’est la position dans la liste  
+
+     N = N + 1 
+     query_card = (query_card - A)/10
+     checking_digit = Liste [0]  
+
+    del Liste [0] 
+
+    
+    print(checking_digit)
+
+    Last_check = 0 
+
+    for i in Liste : 
+
       if Liste.index(i) % 2 == 0 : 
             double = i * 2 
-            If double >= 9 : 
-                  add = double – 9 
-            Else: 
+
+            if double >= 9 : 
+            
+                add = double - 9 
+            
+            else: 
                   add = double 
             Last_check = Last_check + add 
-      Else:  
-            Last_check = Last_check 
-Validity = Last_check + checking_digit 
-if Validity % 10 == 0: 
-      Print (“The credit card is valid!”) 
-      
-validitycard = dbase.execute(''' 
-UPDATE Invoice
-SET Paid = 1
-WHERE credit_card_id = {creditcardid}
-AND Invoice_id = {Referencenumber}
-'''.format(creditcardid = str(query_card), Referencenumber = str(values_dict['referencenumber'])))
+      else:  
+            Last_check = Last_check + i 
 
-else: 
-      Print (“The credit card is not valid!”)
+      Liste[Liste.index(i)] = 222
+
+    print(Liste)
+
+    Validity = Last_check + checking_digit 
+
+    print(Last_check)
+
+    if Validity % 10 == 0: 
+
+        print("The credit card is valid!") 
+
+        dbase.execute(''' UPDATE Invoice
+                    SET Paid = 1
+                    WHERE Invoice_id = {Referencenumber}
+                    '''.format(Referencenumber = referencenumber))
+
+        return ("Invoices paid")
+        
+    else:       
+        print("The credit card is not valid!")
+
+    dbase.close()
+    return True
 
 
 
